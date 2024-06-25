@@ -8,7 +8,8 @@ app = FastAPI()
 class Task(BaseModel):
     id: Optional[UUID] = None
     title: str
-    description: bool = False
+    description: str
+    status: bool = False
 
 tasks = []
 
@@ -18,7 +19,7 @@ def create_task(task: Task):
     tasks.append(task)
     return task
 
-@app.post("/tasks/", response_model=List[Task])
+@app.get("/tasks/", response_model=List[Task])
 def All_tasks():
     return tasks
 
@@ -32,14 +33,17 @@ def task_by_id(task_id: UUID):
 @app.put("/tasks/{task_id}", response_model=Task)
 def update_task(task_id: UUID, task_update: Task):
     for idx, task in enumerate(tasks):
-        if(task_id == task_id):
-            update_task = task.copy(update=task_update.dict(exclude_unset=True))
-            tasks[idx] = update_task
-            return update_task
+        if(task.id == task_id):
+            # update_task = task.copy(update=task_update.dict(exclude_unset=True))
+            tasks[idx].title = task_update.title
+            tasks[idx].description = task_update.description
+            tasks[idx].status = task_update.status
+            return tasks[idx]
     raise HTTPException(status_code=404, detail="Task not found")
 
 @app.delete("/tasks/{task_id}", response_model=Task)
-def delete_task(task_id):
+def delete_task(task_id: UUID):
+    print(task_id)
     for idx, task in enumerate(tasks):
         if(task.id==task_id):
             return tasks.pop(idx)
